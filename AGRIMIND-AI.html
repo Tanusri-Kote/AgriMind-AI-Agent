@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgriMind AI - Autonomous Farm OS</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            emerald: {
+              950: '#041009',
+              900: '#062211',
+              800: '#063f1f',
+              500: '#10b981',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#040906] text-gray-100 min-h-screen relative selection:bg-emerald-500 selection:text-black">
+  
+  <!-- Cyber background grid layout -->
+  <div class="cyber-grid"></div>
+
+  <!-- MAIN WRAPPER CONTAINER -->
+  <div id="main-operating-container" class="min-h-screen flex flex-col transition-all duration-300">
+    
+    <!-- HEADER BAR (hidden on landing/auth) -->
+    <header id="header-bar" class="hidden border-b border-emerald-950/60 bg-[#040906]/90 backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <!-- Logo -->
+        <div class="w-10 h-10 rounded-lg bg-emerald-950 border border-emerald-500/30 flex items-center justify-center glow-border-green">
+          <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">AgriMind AI</h1>
+          <p class="text-[10px] text-gray-500 font-mono tracking-wider">AUTONOMOUS AGRIC-OS v1.8.4</p>
+        </div>
+      </div>
+
+      <!-- Live telemetry summary + shortcuts -->
+      <div class="hidden lg:flex items-center gap-6">
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-950/40 border border-emerald-900/30">
+          <span class="status-dot status-dot-active bg-emerald-500"></span>
+          <span id="offline-sync-indicator" class="text-xs text-emerald-400 font-mono">OS NETWORK SYNCHRONIZED</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-400 font-mono">CROP:</span>
+          <select onchange="changeSelectedCrop(this.value)" class="bg-[#08120c] border border-emerald-900/60 rounded text-xs font-semibold px-2 py-1 text-emerald-400 focus:outline-none focus:border-cyan-500 font-mono">
+            <option value="Tomato">TOMATO (S-A)</option>
+            <option value="Cotton">COTTON (S-B)</option>
+            <option value="Corn">CORN (S-C)</option>
+            <option value="Wheat">WHEAT (S-D)</option>
+            <option value="Rice">RICE (S-E)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Quick Actions (Notifications, Language) -->
+      <div class="flex items-center gap-4">
+        <!-- Notifications button -->
+        <div class="relative">
+          <button onclick="showTab('timeline'); markAllAlertsRead();" class="p-2 rounded-lg bg-emerald-950/20 border border-emerald-900/40 text-gray-400 hover:text-white transition relative">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+            </svg>
+            <span id="alerts-badge" class="absolute -top-1 -right-1 bg-red-500 text-black text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center animate-bounce hidden">0</span>
+          </button>
+        </div>
+
+        <!-- Language Picker -->
+        <select id="lang-select-dropdown" onchange="changeLanguage(this.value)" class="bg-[#08120c] border border-emerald-900/60 rounded text-xs px-2.5 py-1.5 text-gray-300 font-mono">
+          <option value="en">English (EN)</option>
+          <option value="kn">ಕನ್ನಡ (KN)</option>
+          <option value="hi">हिन्दी (HI)</option>
+          <option value="ta">தமிழ் (TA)</option>
+          <option value="te">తెలుగు (TE)</option>
+        </select>
+
+        <!-- Exit button -->
+        <button onclick="logoutUser()" class="p-2 rounded-lg bg-red-950/20 border border-red-900/40 text-red-400 hover:bg-red-900/40 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT VIEWPORT -->
+    <div class="flex-grow flex">
+      
+      <!-- SIDEBAR NAVIGATION (hidden on landing/auth) -->
+      <aside id="side-navigation" class="hidden w-64 border-r border-emerald-950/60 bg-[#040906]/85 backdrop-blur-md p-4 flex flex-col justify-between shrink-0">
+        <div class="space-y-6">
+          <div class="text-[11px] font-mono tracking-wider text-gray-500 uppercase px-3">Agent Dashboards</div>
+          <nav class="space-y-1">
+            <a href="#" data-tab="command" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition text-gray-400 hover:text-white hover:bg-emerald-950/10">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+              Command Center
+            </a>
+            <a href="#" data-tab="weather" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition text-gray-400 hover:text-white hover:bg-emerald-950/10">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+              Weather Intelligence
+            </a>
+            <a href="#" data-tab="climate" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition text-gray-400 hover:text-white hover:bg-emerald-950/10">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+              ClimateShield AI
+            </a>
+            <a href="#" data-tab="doctor" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition text-gray-400 hover:text-white hover:bg-emerald-950/10">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+              Plant Doctor AI
+            </a>
+            <a href="#" data-tab="irrigation" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition text-gray-400 hover:text-white hover:bg-emerald-950/10">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+              Smart Irrigation
+            </a>
+            <a href="#" data-tab="crop" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition text-gray-400 hover:text-white hover:bg-emerald-950/10">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.246.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+              Crop Intelligence
+            </a>
+            <a href="#" data-tab="market" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition text-gray-400 hover:text-white hover:bg-emerald-950/10">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2"></path></svg>
+              Market Intelligence
+            </a>
+            <a href="#" data-tab="timeline" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition text-gray-400 hover:text-white hover:bg-emerald-950/10">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              Activity Timeline
+            </a>
+            <a href="#" data-tab="voice" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition text-gray-400 hover:text-white hover:bg-emerald-950/10">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+              Voice AI Manager
+            </a>
+            <a href="#" data-tab="settings" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition text-gray-400 hover:text-white hover:bg-emerald-950/10">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              Settings & Config
+            </a>
+          </nav>
+        </div>
+        
+        <!-- Offline toggle shortcut -->
+        <div class="p-3 bg-emerald-950/20 border border-emerald-900/30 rounded-lg">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-400 font-mono">Offline Simulation</span>
+            <input type="checkbox" id="sidebar-offline-toggle" onchange="toggleOfflineMode(this.checked)" class="rounded border-gray-700 bg-gray-900 text-emerald-500 focus:ring-emerald-500 h-4 w-4">
+          </div>
+          <p class="text-[10px] text-gray-500 mt-1 font-sans">Simulates low internet / SMS layout.</p>
+        </div>
+      </aside>
+
+      <!-- APP SCREENS VIEWPORT -->
+      <main class="flex-grow p-6 overflow-y-auto max-w-7xl mx-auto w-full">
+        
+        <!-- 1. LANDING PAGE SCREEN -->
+        <section id="screen-landing" class="app-screen py-10 space-y-12">
+          <div class="text-center max-w-3xl mx-auto space-y-6">
+            <span class="px-3 py-1 text-xs rounded-full border border-emerald-500/30 bg-emerald-950/30 text-emerald-400 font-mono inline-block uppercase tracking-wider glow-text-green">Next-Gen Autonomous Agriculture</span>
+            <h2 class="text-5xl lg:text-7xl font-extrabold tracking-tight font-display text-white">
+              AgriMind <span class="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">AI</span>
+            </h2>
+            <p class="text-lg text-gray-400 leading-relaxed font-sans">
+              An intelligent, collaborative multi-agent operating system for smart farming. Monitor weather, predict crop diseases, track groundwater, and optimize commodity sales autonomously.
+            </p>
+            <div class="pt-4 flex gap-4 justify-center">
+              <button onclick="showTab('auth')" class="px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 font-bold text-black shadow-lg shadow-emerald-500/25 transition transform hover:scale-105 cursor-pointer">
+                Initialize System (Farmer Sign-In)
+              </button>
+            </div>
+          </div>
+
+          <!-- Feature Cards Grid -->
+          <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 pt-10">
+            <div class="glass-panel p-6 space-y-3">
+              <div class="w-10 h-10 rounded bg-cyan-500/10 flex items-center justify-center text-cyan-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white">Weather Intel Agent</h3>
+              <p class="text-sm text-gray-400">Hyperlocal weather diagnostics, flood risk sensors, and rainstorm warnings.</p>
+            </div>
+            
+            <div class="glass-panel p-6 space-y-3">
+              <div class="w-10 h-10 rounded bg-purple-500/10 flex items-center justify-center text-purple-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white">ClimateShield Agent</h3>
+              <p class="text-sm text-gray-400">Predictive crop survival matrices and automated emergency defense planning.</p>
+            </div>
+
+            <div class="glass-panel p-6 space-y-3">
+              <div class="w-10 h-10 rounded bg-amber-500/10 flex items-center justify-center text-amber-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white">Plant Doctor Agent</h3>
+              <p class="text-sm text-gray-400">Computer vision leaf classification, treatment engines, and nutrient scoring.</p>
+            </div>
+
+            <div class="glass-panel p-6 space-y-3">
+              <div class="w-10 h-10 rounded bg-blue-500/10 flex items-center justify-center text-blue-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white">Irrigation Optimizer</h3>
+              <p class="text-sm text-gray-400">Soil moisture tracking, rainfall water-saving, and automated valve controls.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. AUTHENTICATION SCREEN -->
+        <section id="screen-auth" class="app-screen hidden py-20 flex justify-center items-center">
+          <div class="glass-panel p-8 w-full max-w-md space-y-6">
+            <div class="text-center">
+              <h3 class="text-2xl font-bold text-white">Secure Farmer Authentication</h3>
+              <p class="text-sm text-gray-400 mt-1">Biometric Scanner & Voice ID Simulation</p>
+            </div>
+
+            <!-- Fingerprint visual mock -->
+            <div class="flex justify-center py-4">
+              <div onclick="loginUser()" class="w-32 h-32 rounded-full border-2 border-emerald-500/20 bg-emerald-950/20 flex items-center justify-center cursor-pointer hover:border-emerald-400 group transition hover:scale-105 glow-border-green">
+                <svg class="w-16 h-16 text-emerald-400 group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 009 11a13.916 13.916 0 00-3.138-8.42l-.054-.09m15.54 11.218a14.95 14.95 0 01-4.708 7.07l-.054.09m4.762-17.218c.13.53.198 1.09.198 1.662 0 5.421-3.372 10.05-8.187 11.95m0 0A13.916 13.916 0 019 11a13.916 13.916 0 013.138-8.42m0 0a14.952 14.952 0 014.708-7.07l.054-.09M9 11c0-3.517 1.009-6.799 2.753-9.571m-3.44 2.04L8.259 3.57M9 11a13.916 13.916 0 01-3.138 8.42m0 0A14.952 14.952 0 011.154 12.35l.054-.09"></path>
+                </svg>
+              </div>
+            </div>
+
+            <div class="text-center text-xs text-gray-500">
+              <span class="text-emerald-400 animate-pulse font-mono">●</span> TAP SCANNER TO BYPASS BIOMETRIC SIMULATION
+            </div>
+
+            <div class="space-y-4">
+              <button onclick="loginUser()" class="w-full py-3 rounded-lg bg-emerald-500 text-black font-bold hover:bg-emerald-400 transition cursor-pointer">
+                Bypass & Enter Dashboard
+              </button>
+              <button onclick="showTab('landing')" class="w-full py-3 rounded-lg border border-gray-800 text-gray-400 hover:text-white transition">
+                Back to Welcome Screen
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. AI FARM COMMAND CENTER -->
+        <section id="screen-command" class="app-screen hidden space-y-6">
+          <!-- Top Grid (Interactive Farm Map, Agent communication) -->
+          <div class="grid lg:grid-cols-3 gap-6">
+            
+            <!-- Column 1 & 2: Interactive SVG Farm Map -->
+            <div class="lg:col-span-2 glass-panel p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between items-center mb-4">
+                  <h3 class="text-lg font-semibold text-white">Interactive Farm Grid (IoT Zones)</h3>
+                  <span class="text-xs bg-emerald-950 text-emerald-400 font-mono px-2 py-1 rounded border border-emerald-900/60">5 Zones Monitored</span>
+                </div>
+                <p class="text-xs text-gray-400 mb-6">Select a grid sector to check micro-climates or trigger localized agent analytics.</p>
+              </div>
+
+              <!-- Map grid layout -->
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <!-- Zone A -->
+                <div onclick="changeSelectedCrop('Tomato')" class="map-cell glass-card p-4 rounded-xl border-l-4 border-emerald-500 bg-[#08120c] space-y-2">
+                  <div class="flex justify-between items-center text-xs font-mono text-gray-400">
+                    <span>ZONE A</span>
+                    <span class="text-emerald-400">Active</span>
+                  </div>
+                  <h4 class="font-bold text-white text-base">Tomatoes</h4>
+                  <div class="grid grid-cols-2 gap-2 text-[10px] text-gray-400 font-mono">
+                    <span>Moisture: 42%</span>
+                    <span>Health: 94%</span>
+                  </div>
+                </div>
+                
+                <!-- Zone B -->
+                <div onclick="changeSelectedCrop('Cotton')" class="map-cell glass-card p-4 rounded-xl border-l-4 border-cyan-500 bg-[#08120c] space-y-2">
+                  <div class="flex justify-between items-center text-xs font-mono text-gray-400">
+                    <span>ZONE B</span>
+                    <span class="text-cyan-400">Irrigating</span>
+                  </div>
+                  <h4 class="font-bold text-white text-base">Cotton</h4>
+                  <div class="grid grid-cols-2 gap-2 text-[10px] text-gray-400 font-mono">
+                    <span>Moisture: 58%</span>
+                    <span>Health: 88%</span>
+                  </div>
+                </div>
+
+                <!-- Zone C -->
+                <div onclick="changeSelectedCrop('Corn')" class="map-cell glass-card p-4 rounded-xl border-l-4 border-purple-500 bg-[#08120c] space-y-2">
+                  <div class="flex justify-between items-center text-xs font-mono text-gray-400">
+                    <span>ZONE C</span>
+                    <span class="text-purple-400">Standby</span>
+                  </div>
+                  <h4 class="font-bold text-white text-base">Corn</h4>
+                  <div class="grid grid-cols-2 gap-2 text-[10px] text-gray-400 font-mono">
+                    <span>Moisture: 48%</span>
+                    <span>Health: 90%</span>
+                  </div>
+                </div>
+
+                <!-- Zone D -->
+                <div onclick="changeSelectedCrop('Wheat')" class="map-cell glass-card p-4 rounded-xl border-l-4 border-amber-500 bg-[#08120c] space-y-2">
+                  <div class="flex justify-between items-center text-xs font-mono text-gray-400">
+                    <span>ZONE D</span>
+                    <span class="text-amber-400">Fallow</span>
+                  </div>
+                  <h4 class="font-bold text-white text-base">Wheat</h4>
+                  <div class="grid grid-cols-2 gap-2 text-[10px] text-gray-400 font-mono">
+                    <span>Moisture: 22%</span>
+                    <span>Health: --</span>
+                  </div>
+                </div>
+
+                <!-- Zone E -->
+                <div onclick="changeSelectedCrop('Rice')" class="map-cell glass-card p-4 rounded-xl border-l-4 border-blue-500 bg-[#08120c] space-y-2">
+                  <div class="flex justify-between items-center text-xs font-mono text-gray-400">
+                    <span>ZONE E</span>
+                    <span class="text-blue-400">Standby</span>
+                  </div>
+                  <h4 class="font-bold text-white text-base">Rice</h4>
+                  <div class="grid grid-cols-2 gap-2 text-[10px] text-gray-400 font-mono">
+                    <span>Moisture: 72%</span>
+                    <span>Health: 95%</span>
+                  </div>
+                </div>
+
+                <!-- Drone Feeds card -->
+                <div onclick="showTab('doctor')" class="map-cell glass-card p-4 rounded-xl bg-slate-900/50 hover:bg-slate-950 flex flex-col justify-center items-center gap-1 text-center cursor-pointer border border-dashed border-gray-800">
+                  <svg class="w-8 h-8 text-cyan-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 00-2 2z"></path></svg>
+                  <span class="text-xs font-bold text-white">DRONE PATROL</span>
+                  <span class="text-[9px] text-gray-500 font-mono">LAUNCH THERMAL SCAN</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Column 3: Live Agent Collaboration Logs -->
+            <div class="glass-panel p-6 flex flex-col justify-between h-[360px]">
+              <div>
+                <div class="flex justify-between items-center mb-4">
+                  <h3 class="text-lg font-semibold text-white">Agent Collaboration Chat</h3>
+                  <span class="text-xs bg-cyan-950 text-cyan-400 font-mono px-2 py-1 rounded border border-cyan-900/60">Autonomous Loop</span>
+                </div>
+                <div id="command-agent-logs" class="overflow-y-auto h-[230px] pr-2 space-y-3 scrollbar-thin">
+                  <!-- Javascript updates these logs -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sandbox Controller & Scenarios triggers -->
+          <div class="grid md:grid-cols-3 gap-6">
+            
+            <!-- Sandbox Simulation settings -->
+            <div class="glass-panel p-6 space-y-4">
+              <h3 class="text-lg font-semibold text-white">Weather Simulation Sandbox</h3>
+              <p class="text-xs text-gray-400">Manually trigger extreme weather patterns to witness autonomous inter-agent coordination.</p>
+              
+              <div class="grid grid-cols-2 gap-2 pt-2">
+                <button onclick="triggerSimulationScenario('rainstorm')" class="py-2.5 rounded bg-blue-950 border border-blue-900 text-blue-300 font-mono text-xs hover:bg-blue-900/60 transition cursor-pointer">
+                  RAIN SYNC
+                </button>
+                <button onclick="triggerSimulationScenario('heatwave')" class="py-2.5 rounded bg-amber-950 border border-amber-900 text-amber-300 font-mono text-xs hover:bg-amber-900/60 transition cursor-pointer">
+                  HEAT SYNC
+                </button>
+                <button onclick="triggerSimulationScenario('pest')" class="py-2.5 rounded bg-purple-950 border border-purple-900 text-purple-300 font-mono text-xs hover:bg-purple-900/60 transition cursor-pointer">
+                  PEST SYNC
+                </button>
+                <button onclick="triggerSimulationScenario('normal')" class="py-2.5 rounded bg-emerald-950 border border-emerald-900 text-emerald-300 font-mono text-xs hover:bg-emerald-900/60 transition cursor-pointer">
+                  RESET BASE
+                </button>
+              </div>
+            </div>
+
+            <!-- Telemetry Overview (Live stats widgets) -->
+            <div class="glass-panel p-6 space-y-4">
+              <h3 class="text-lg font-semibold text-white">IoT Telemetry Feeds</h3>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="p-3 bg-emerald-950/20 border border-emerald-900/30 rounded">
+                  <div class="text-[10px] text-gray-500 uppercase font-mono">Temp</div>
+                  <div class="text-lg font-bold telemetry-temp text-emerald-400">28.5°C</div>
+                </div>
+                <div class="p-3 bg-emerald-950/20 border border-emerald-900/30 rounded">
+                  <div class="text-[10px] text-gray-500 uppercase font-mono">Humidity</div>
+                  <div class="text-lg font-bold telemetry-humidity text-emerald-400">62.0%</div>
+                </div>
+                <div class="p-3 bg-emerald-950/20 border border-emerald-900/30 rounded">
+                  <div class="text-[10px] text-gray-500 uppercase font-mono">Soil Moisture</div>
+                  <div class="text-lg font-bold telemetry-moisture text-emerald-400">42.0%</div>
+                </div>
+                <div class="p-3 bg-emerald-950/20 border border-emerald-900/30 rounded">
+                  <div class="text-[10px] text-gray-500 uppercase font-mono">Wind Speed</div>
+                  <div class="text-lg font-bold telemetry-wind text-emerald-400">14.5 km/h</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Active Alerts and Automated Tasks list -->
+            <div class="glass-panel p-6 flex flex-col justify-between">
+              <div>
+                <h3 class="text-lg font-semibold text-white mb-4">Task Queue (Agent Generated)</h3>
+                <div id="tasks-container" class="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                  <!-- JS updates tasks -->
+                </div>
+              </div>
+              <div class="flex gap-2 pt-4 border-t border-emerald-950/40">
+                <input type="text" id="new-task-input" placeholder="Create farming task..." class="flex-grow bg-[#08120c] border border-emerald-900/60 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-cyan-500">
+                <select id="new-task-priority" class="bg-[#08120c] border border-emerald-900/60 rounded text-xs text-white px-2">
+                  <option value="low">LOW</option>
+                  <option value="medium" selected>MED</option>
+                  <option value="high">HIGH</option>
+                </select>
+                <button onclick="addTaskFromUI()" class="px-3 py-1.5 bg-emerald-500 text-black text-xs font-bold rounded hover:bg-emerald-400 transition cursor-pointer">+</button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Grid: Alerts list full -->
+          <div class="glass-panel p-6">
+            <h3 class="text-lg font-semibold text-white mb-4">Autonomous Alert Terminal</h3>
+            <div id="alerts-container" class="grid md:grid-cols-2 gap-4">
+              <!-- JS loads alerts -->
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. WEATHER INTELLIGENCE DASHBOARD -->
+        <section id="screen-weather" class="app-screen hidden space-y-6">
+          <div class="flex justify-between items-center">
+            <div>
+              <h2 class="text-2xl font-bold text-white">Weather Intelligence & Microclimate</h2>
+              <p class="text-sm text-gray-400">Continuous hyperlocal radar sweeps and atmospheric forecasting</p>
+            </div>
+            <span class="text-xs bg-cyan-950 text-cyan-400 font-mono px-3 py-1 rounded-full border border-cyan-900/60">Hyperlocal Predictor Active</span>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-6">
+            <!-- Weather stats panel -->
+            <div class="glass-panel p-6 space-y-4">
+              <h3 class="text-base font-semibold text-white">Atmospheric Telemetry</h3>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="p-3 bg-emerald-950/20 border border-emerald-900/30 rounded">
+                  <span class="text-[10px] text-gray-500 block uppercase font-mono">Ambient Temp</span>
+                  <span class="text-base font-bold telemetry-temp text-white">28.5°C</span>
+                </div>
+                <div class="p-3 bg-emerald-950/20 border border-emerald-900/30 rounded">
+                  <span class="text-[10px] text-gray-500 block uppercase font-mono">Air Humidity</span>
+                  <span class="text-base font-bold telemetry-humidity text-white">62.0%</span>
+                </div>
+                <div class="p-3 bg-emerald-950/20 border border-emerald-900/30 rounded">
+                  <span class="text-[10px] text-gray-500 block uppercase font-mono">Wind Speed</span>
+                  <span class="text-base font-bold telemetry-wind text-white">14.5 km/h</span>
+                </div>
+                <div class="p-3 bg-emerald-950/20 border border-emerald-900/30 rounded">
+                  <span class="text-[10px] text-gray-500 block uppercase font-mono">Rain Probability</span>
+                  <span class="text-base font-bold telemetry-rain text-white">15.0%</span>
+                </div>
+                <div class="p-3 bg-emerald-950/20 border border-emerald-900/30 rounded">
+                  <span class="text-[10px] text-gray-500 block uppercase font-mono">UV Index</span>
+                  <span class="text-base font-bold text-white">7.4 (High)</span>
+                </div>
+                <div class="p-3 bg-emerald-950/20 border border-emerald-900/30 rounded">
+                  <span class="text-[10px] text-gray-500 block uppercase font-mono">Evapotranspiration</span>
+                  <span class="text-base font-bold text-white">4.2 mm/day</span>
+                </div>
+              </div>
+
+              <!-- Interactive slider calibration -->
+              <div class="pt-4 border-t border-emerald-950/40 space-y-2">
+                <span class="text-xs font-semibold text-white block">Hyperlocal Temperature Calibration</span>
+                <input type="range" min="15" max="45" value="28" class="w-full accent-cyan-500 bg-gray-900 rounded" oninput="state.telemetry.temperature = parseFloat(this.value); updateDOMTelemetryDisplay();">
+              </div>
+            </div>
+
+            <!-- Forecast visual graph -->
+            <div class="md:col-span-2 glass-panel p-6 flex flex-col justify-between">
+              <div>
+                <h3 class="text-base font-semibold text-white mb-2">24-Hour Temperature & Rain Projection</h3>
+                <p class="text-xs text-gray-400 mb-4">Continuous updates generated from local micro-barometer array feeds.</p>
+              </div>
+              <div class="h-64 relative">
+                <canvas id="weatherForecastChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- 7 Day Forecast list -->
+          <div class="glass-panel p-6">
+            <h3 class="text-base font-semibold text-white mb-4">7-Day Meteorological Projections</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4 text-center">
+              <div class="p-3 glass-card space-y-1">
+                <span class="text-xs text-gray-500 block font-mono">SAT</span>
+                <span class="text-lg">☀️</span>
+                <span class="text-xs font-bold text-white block">29°C / 18°C</span>
+              </div>
+              <div class="p-3 glass-card space-y-1">
+                <span class="text-xs text-gray-500 block font-mono">SUN</span>
+                <span class="text-lg">⛅</span>
+                <span class="text-xs font-bold text-white block">30°C / 19°C</span>
+              </div>
+              <div class="p-3 glass-card space-y-1">
+                <span class="text-xs text-gray-500 block font-mono">MON</span>
+                <span class="text-lg">⛈️</span>
+                <span class="text-xs font-bold text-white block">22°C / 16°C</span>
+              </div>
+              <div class="p-3 glass-card space-y-1">
+                <span class="text-xs text-gray-500 block font-mono">TUE</span>
+                <span class="text-lg">🌦️</span>
+                <span class="text-xs font-bold text-white block">24°C / 17°C</span>
+              </div>
+              <div class="p-3 glass-card space-y-1">
+                <span class="text-xs text-gray-500 block font-mono">WED</span>
+                <span class="text-lg">☀️</span>
+                <span class="text-xs font-bold text-white block">28°C / 18°C</span>
+              </div>
+              <div class="p-3 glass-card space-y-1">
+                <span class="text-xs text-gray-500 block font-mono">THU</span>
+                <span class="text-lg">☀️</span>
+                <span class="text-xs font-bold text-white block">29°C / 18°C</span>
+              </div>
+              <div class="p-3 glass-card space-y-1">
+                <span class="text-xs text-gray-500 block font-mono">FRI</span>
+                <span class="text-lg">☀️</span>
+                <span class="text-xs font-bold text-white block">31°C / 20°C</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. CLIMATESHIELD ANALYTICS PAGE -->
+        <section id="screen-climate" class="app-screen hidden space-y-6">
+          <div class="flex justify-between items-center">
+            <div>
+              <h2 class="text-2xl font-bold text-white">ClimateShield AI Analytics</h2>
+              <p class="text-sm text-gray-400">Crop viability prediction and extreme climate threat shielding</p>
+            </div>
+            <span class="text-xs bg-purple-950 text-purple-400 font-mono px-3 py-1 rounded-full border border-purple-900/60">Risk Modeling Engine Active</span>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-6">
+            <!-- Crop survival matrix card -->
+            <div class="glass-panel p-6 flex flex-col items-center justify-center text-center space-y-4">
+              <h3 class="text-base font-semibold text-white">Crop Survival Probability</h3>
+              <div class="w-36 h-36 rounded-full border-4 border-dashed border-emerald-500/30 flex items-center justify-center relative">
+                <div class="absolute inset-2 rounded-full bg-emerald-950/20 border border-emerald-500/20 flex flex-col items-center justify-center">
+                  <span id="survival-rate-gauge" class="text-3xl font-extrabold text-white glow-text-green">94%</span>
+                  <span class="text-[9px] text-emerald-400 font-mono tracking-wider">VIABLE STATUS</span>
+                </div>
+              </div>
+              <p class="text-xs text-gray-400">Model factors: Ambient heat stress, transpirative water deficit, wind shear, and grid moisture depletion ratios.</p>
+            </div>
+
+            <!-- Risk indicators -->
+            <div class="md:col-span-2 glass-panel p-6 space-y-6">
+              <h3 class="text-base font-semibold text-white">Real-Time Threat Radar Scores</h3>
+              <div class="space-y-4">
+                <div>
+                  <div class="flex justify-between text-xs text-gray-400 mb-1.5 font-mono">
+                    <span>FLOOD PROBABILITY</span>
+                    <span id="flood-meter">12%</span>
+                  </div>
+                  <div class="w-full bg-gray-900 rounded-full h-2">
+                    <div id="flood-meter-bar" class="bg-cyan-500 h-2 rounded-full transition-all duration-500" style="width: 12%"></div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div class="flex justify-between text-xs text-gray-400 mb-1.5 font-mono">
+                    <span>HEAT STRESS PROBABILITY</span>
+                    <span>15%</span>
+                  </div>
+                  <div class="w-full bg-gray-900 rounded-full h-2">
+                    <div class="bg-amber-500 h-2 rounded-full" style="width: 15%"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="flex justify-between text-xs text-gray-400 mb-1.5 font-mono">
+                    <span>DROUGHT INDEX</span>
+                    <span>30%</span>
+                  </div>
+                  <div class="w-full bg-gray-900 rounded-full h-2">
+                    <div class="bg-red-500 h-2 rounded-full" style="width: 30%"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="pt-4 border-t border-emerald-950/40">
+                <canvas id="climateRiskChart" class="h-40"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic contingency planner -->
+          <div class="glass-panel p-6 space-y-4">
+            <div class="flex justify-between items-center">
+              <h3 class="text-base font-semibold text-white">AI Preventive Defense Plan</h3>
+              <button onclick="document.getElementById('preventive-report').classList.remove('hidden'); logAgentChat('ClimateShield Agent', 'User', 'Preventive defense plans generated and loaded.'); speakText('Preventive defense plans generated successfully.');" class="px-4 py-2 bg-purple-600 text-white text-xs font-bold rounded-lg hover:bg-purple-500 transition cursor-pointer">
+                Generate Prevention Report
+              </button>
+            </div>
+            
+            <div id="preventive-report" class="hidden grid md:grid-cols-3 gap-4 pt-2">
+              <div class="p-4 rounded-lg bg-purple-950/20 border border-purple-900/40 space-y-1.5">
+                <span class="text-xs font-bold text-purple-400 font-mono block">STAGE 1: SHADE DEPLOYMENT</span>
+                <p class="text-xs text-gray-300">Deploy overhead UV-blocking shade nets across seedling sector C to prevent leaf dehydration burn.</p>
+              </div>
+              <div class="p-4 rounded-lg bg-purple-950/20 border border-purple-900/40 space-y-1.5">
+                <span class="text-xs font-bold text-purple-400 font-mono block">STAGE 2: COOLING SPRAYERS</span>
+                <p class="text-xs text-gray-300">Activate fine mist sprinkler cycles from 11:30 AM to 2:30 PM to maintain humidity buffer.</p>
+              </div>
+              <div class="p-4 rounded-lg bg-purple-950/20 border border-purple-900/40 space-y-1.5">
+                <span class="text-xs font-bold text-purple-400 font-mono block">STAGE 3: FEED STRENGTHENING</span>
+                <p class="text-xs text-gray-300">Spray organic potassium silicate feed to increase crop cellular wall strength against high heat shock.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. PLANT DOCTOR MONITORING PAGE -->
+        <section id="screen-doctor" class="app-screen hidden space-y-6">
+          <div class="flex justify-between items-center">
+            <div>
+              <h2 class="text-2xl font-bold text-white">Plant Doctor Diagnostic Lab</h2>
+              <p class="text-sm text-gray-400">Upload leaves photos for automated computer vision disease identification</p>
+            </div>
+            <span class="text-xs bg-amber-950 text-amber-400 font-mono px-3 py-1 rounded-full border border-amber-900/60">Vision Core Connected</span>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-6">
+            <!-- Sample Selector and Scanner -->
+            <div class="md:col-span-2 space-y-6">
+              <!-- Upload panel (real files input preview) -->
+              <div class="glass-panel p-6 space-y-4">
+                <h3 class="text-base font-semibold text-white">Upload Crop Leaf Photo</h3>
+                
+                <!-- Camera Scope Simulation panel -->
+                <div onclick="document.getElementById('leaf-image-upload').click()" class="scanlines bg-emerald-950/10 border border-emerald-900/60 rounded-xl relative h-64 flex flex-col items-center justify-center cursor-pointer overflow-hidden group hover:border-cyan-500 transition">
+                  <input type="file" id="leaf-image-upload" accept="image/*" class="hidden" onchange="handleLeafImageUpload(this)">
+                  <img id="scanned-image-preview" class="absolute inset-0 w-full h-full object-cover hidden opacity-60 z-0 transition group-hover:scale-105">
+                  
+                  <div id="scanner-progress-bar" class="scanner-bar hidden"></div>
+                  
+                  <!-- Center overlay icon -->
+                  <div id="scanner-upload-placeholder" class="z-10 flex flex-col items-center justify-center text-center p-4">
+                    <svg class="w-12 h-12 text-cyan-400 animate-pulse mb-2 group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <div class="text-xs font-mono text-cyan-400 font-bold">DRAG & DROP OR CLICK TO UPLOAD FIELD PHOTO</div>
+                    <div class="text-[10px] text-gray-500 font-sans mt-1">Supports JPG, PNG (Simulates live drone/field inspection)</div>
+                  </div>
+                </div>
+                
+                <!-- Scanner controllers -->
+                <div class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-[#08120c] border border-emerald-950 p-4 rounded-xl">
+                  <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <span class="text-xs text-gray-400 font-mono shrink-0">Diagnosis Case:</span>
+                    <select id="uploaded-diag-case" class="bg-[#0c1c13] border border-emerald-900/60 rounded text-xs px-2 py-1 text-white font-mono flex-grow sm:flex-grow-0" onchange="const val = this.value; document.getElementById('diagnose-btn').setAttribute('data-target-case', val);">
+                      <option value="tomato_blight">Tomato Early Blight</option>
+                      <option value="wheat_rust">Wheat Leaf Rust</option>
+                      <option value="corn_leaf_spot">Corn Gray Leaf Spot</option>
+                      <option value="healthy_cotton">Healthy Cotton Plant</option>
+                    </select>
+                  </div>
+                  
+                  <button id="diagnose-btn" data-target-case="tomato_blight" onclick="event.stopPropagation(); const caseKey = this.getAttribute('data-target-case'); if(caseKey) { diagnoseLeafSample(caseKey); } else { speakText('Please upload or select a leaf sample first'); }" class="px-6 py-2.5 bg-cyan-500 text-black text-xs font-extrabold rounded-lg hover:bg-cyan-400 transition cursor-pointer w-full sm:w-auto text-center shadow-lg shadow-cyan-500/20">
+                    ENGAGE SCAN
+                  </button>
+                </div>
+              </div>
+
+              <!-- Option 2: Pre-defined list fallback -->
+              <div class="glass-panel p-6 space-y-3">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest font-mono">Simulated Library Leaf Models</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <!-- Case 1 -->
+                  <div onclick="selectDiagnosticLeaf(this, 'tomato_blight'); document.getElementById('scanned-image-preview').classList.add('hidden');" class="diagnostic-leaf-picker p-3 glass-card text-center cursor-pointer space-y-2 border border-gray-800">
+                    <div class="w-full h-12 bg-amber-950/20 rounded flex items-center justify-center text-xl">🍂</div>
+                    <span class="text-[10px] font-semibold text-white block">Tomato Blight</span>
+                  </div>
+                  
+                  <!-- Case 2 -->
+                  <div onclick="selectDiagnosticLeaf(this, 'wheat_rust'); document.getElementById('scanned-image-preview').classList.add('hidden');" class="diagnostic-leaf-picker p-3 glass-card text-center cursor-pointer space-y-2 border border-gray-800">
+                    <div class="w-full h-12 bg-orange-950/20 rounded flex items-center justify-center text-xl">🌾</div>
+                    <span class="text-[10px] font-semibold text-white block">Wheat Rust</span>
+                  </div>
+
+                  <!-- Case 3 -->
+                  <div onclick="selectDiagnosticLeaf(this, 'corn_leaf_spot'); document.getElementById('scanned-image-preview').classList.add('hidden');" class="diagnostic-leaf-picker p-3 glass-card text-center cursor-pointer space-y-2 border border-gray-800">
+                    <div class="w-full h-12 bg-yellow-950/20 rounded flex items-center justify-center text-xl">🌽</div>
+                    <span class="text-[10px] font-semibold text-white block">Corn Spot</span>
+                  </div>
+
+                  <!-- Case 4 -->
+                  <div onclick="selectDiagnosticLeaf(this, 'healthy_cotton'); document.getElementById('scanned-image-preview').classList.add('hidden');" class="diagnostic-leaf-picker p-3 glass-card text-center cursor-pointer space-y-2 border border-gray-800">
+                    <div class="w-full h-12 bg-emerald-950/20 rounded flex items-center justify-center text-xl">🌿</div>
+                    <span class="text-[10px] font-semibold text-white block">Healthy Cotton</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Diagnostics results card -->
+            <div id="diagnostic-results-card" class="glass-panel p-6 space-y-4 hidden border-l-4 border-cyan-500 h-fit">
+              <div class="flex justify-between items-start">
+                <h3 class="text-base font-semibold text-white">Diagnostic Results</h3>
+                <span id="diag-confidence" class="bg-cyan-950 text-cyan-400 text-xs px-2 py-0.5 rounded font-mono font-bold">--</span>
+              </div>
+              
+              <div class="space-y-4 text-xs">
+                <div>
+                  <span class="text-gray-500 block uppercase font-mono tracking-wider">Identified Classification</span>
+                  <span id="diag-name" class="text-white font-bold text-sm">--</span>
+                </div>
+                <div>
+                  <span class="text-gray-500 block uppercase font-mono tracking-wider">Observed Symptoms</span>
+                  <p id="diag-symptoms" class="text-gray-300 leading-relaxed">--</p>
+                </div>
+                <div>
+                  <span class="text-gray-500 block uppercase font-mono tracking-wider">AI Treatment Prescription</span>
+                  <p id="diag-treatment" class="text-gray-300 leading-relaxed">--</p>
+                </div>
+                <div>
+                  <span class="text-gray-500 block uppercase font-mono tracking-wider">Recommended Sprayer Schedule</span>
+                  <p id="diag-schedule" class="text-gray-300 leading-relaxed">--</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. SMART IRRIGATION DASHBOARD -->
+        <section id="screen-irrigation" class="app-screen hidden space-y-6">
+          <div class="flex justify-between items-center">
+            <div>
+              <h2 class="text-2xl font-bold text-white">Smart Irrigation Engine</h2>
+              <p class="text-sm text-gray-400">Groundwater depletion monitoring and watering automation</p>
+            </div>
+            <span id="irrigation-valve-status" class="text-emerald-400 font-mono text-sm">AUTO-MONITORING ACTIVE</span>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-6">
+            <!-- Moisture dial -->
+            <div class="glass-panel p-6 flex flex-col items-center justify-center text-center space-y-4">
+              <h3 class="text-base font-semibold text-white">Live Soil Moisture</h3>
+              <div class="w-36 h-36 rounded-full border-4 border-dashed border-blue-500/30 flex items-center justify-center relative">
+                <div class="absolute inset-2 rounded-full bg-blue-950/20 border border-blue-500/20 flex flex-col items-center justify-center">
+                  <span class="text-3xl font-extrabold text-white glow-text-cyan telemetry-moisture">42.0%</span>
+                  <span class="text-[9px] text-blue-400 font-mono tracking-wider">SATURATED LEVEL</span>
+                </div>
+              </div>
+              <p class="text-xs text-gray-400">Valves engage automatically when humidity levels fall below 30%.</p>
+            </div>
+
+            <!-- Flow & Moisture charts -->
+            <div class="md:col-span-2 glass-panel p-6 flex flex-col justify-between">
+              <div>
+                <h3 class="text-base font-semibold text-white mb-2">7-Day Soil Moisture Level Historical</h3>
+                <p class="text-xs text-gray-400 mb-4">Aggregates readings from underground moisture telemetry probes.</p>
+              </div>
+              <div class="h-62 relative">
+                <canvas id="irrigationMoistureChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Valves Control Panel and Water Analytics -->
+          <div class="grid md:grid-cols-3 gap-6">
+            <!-- Valve switches -->
+            <div class="glass-panel p-6 space-y-4">
+              <h3 class="text-base font-semibold text-white">Manual Valve Overrides</h3>
+              <p class="text-xs text-gray-400">Manually trigger water flow to individual grid sectors (cancels Auto Mode).</p>
+              <div class="space-y-3 font-mono text-xs">
+                <div class="flex justify-between items-center p-2 rounded bg-emerald-950/10 border border-emerald-900/30">
+                  <span>SECTOR A (Tomato)</span>
+                  <button id="valve-btn-a" onclick="const active=this.textContent==='CLOSED'; this.textContent=active?'OPENED':'CLOSED'; this.className=active?'text-cyan-400 font-bold':'text-gray-500'; logAgentChat('Smart Irrigation Agent', 'User', `MANUAL VALVE OVERRIDE: Sector A valve ${active?'OPENED':'CLOSED'}.`); pushAlert('Smart Irrigation', `Sector A valve manually override: ${active?'OPEN':'CLOSED'}`, 'warning');" class="text-gray-500 hover:text-white transition">CLOSED</button>
+                </div>
+                <div class="flex justify-between items-center p-2 rounded bg-emerald-950/10 border border-emerald-900/30">
+                  <span>SECTOR B (Cotton)</span>
+                  <button id="valve-btn-b" onclick="const active=this.textContent==='CLOSED'; this.textContent=active?'OPENED':'CLOSED'; this.className=active?'text-cyan-400 font-bold':'text-gray-500'; logAgentChat('Smart Irrigation Agent', 'User', `MANUAL VALVE OVERRIDE: Sector B valve ${active?'OPENED':'CLOSED'}.`); pushAlert('Smart Irrigation', `Sector B valve manually override: ${active?'OPEN':'CLOSED'}`, 'warning');" class="text-gray-500 hover:text-white transition">CLOSED</button>
+                </div>
+                <div class="flex justify-between items-center p-2 rounded bg-emerald-950/10 border border-emerald-900/30">
+                  <span>SECTOR C (Corn)</span>
+                  <button id="valve-btn-c" onclick="const active=this.textContent==='CLOSED'; this.textContent=active?'OPENED':'CLOSED'; this.className=active?'text-cyan-400 font-bold':'text-gray-500'; logAgentChat('Smart Irrigation Agent', 'User', `MANUAL VALVE OVERRIDE: Sector C valve ${active?'OPENED':'CLOSED'}.`); pushAlert('Smart Irrigation', `Sector C valve manually override: ${active?'OPEN':'CLOSED'}`, 'warning');" class="text-gray-500 hover:text-white transition">CLOSED</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Optimization scores -->
+            <div class="md:col-span-2 glass-panel p-6 space-y-4">
+              <h3 class="text-base font-semibold text-white">Water Optimization Metrics</h3>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="p-4 rounded-lg bg-emerald-950/20 border border-emerald-900/40 text-center">
+                  <span class="text-[10px] text-gray-500 block uppercase font-mono">Volume Saved</span>
+                  <span class="text-xl font-bold text-emerald-400">32,400 L</span>
+                  <span class="text-[9px] text-gray-400 block mt-1">This Month</span>
+                </div>
+                <div class="p-4 rounded-lg bg-emerald-950/20 border border-emerald-900/40 text-center">
+                  <span class="text-[10px] text-gray-500 block uppercase font-mono">Efficiency</span>
+                  <span class="text-xl font-bold text-emerald-400">94.2%</span>
+                  <span class="text-[9px] text-gray-400 block mt-1">Utilization Score</span>
+                </div>
+                <div class="p-4 rounded-lg bg-emerald-950/20 border border-emerald-900/40 text-center">
+                  <span class="text-[10px] text-gray-500 block uppercase font-mono">Flow Rate</span>
+                  <span class="text-xl font-bold text-emerald-400">15.2 L/m</span>
+                  <span class="text-[9px] text-gray-400 block mt-1">Valves Active</span>
+                </div>
+                <div class="p-4 rounded-lg bg-emerald-950/20 border border-emerald-900/40 text-center">
+                  <span class="text-[10px] text-gray-500 block uppercase font-mono">Groundwater</span>
+                  <span class="text-xl font-bold text-emerald-400">78.2m</span>
+                  <span class="text-[9px] text-gray-400 block mt-1">Well Depth</span>
+                </div>
+              </div>
+              
+              <!-- Auto Irrigation calendar log -->
+              <div class="p-3 bg-blue-950/20 border border-blue-900/40 rounded-lg text-xs flex justify-between items-center font-mono">
+                <span>NEXT SCHEDULED IRRIGATION:</span>
+                <span class="text-blue-400 font-bold">Tomorrow, 06:00 AM (Duration: 20 mins)</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8. CROP INTELLIGENCE PAGE -->
+        <section id="screen-crop" class="app-screen hidden space-y-6">
+          <div class="flex justify-between items-center">
+            <div>
+              <h2 class="text-2xl font-bold text-white">Crop Intelligence & Rotations</h2>
+              <p class="text-sm text-gray-400">Soil profile analytics (NPK levels) and suitability scoring</p>
+            </div>
+            <span class="text-xs bg-emerald-950 text-emerald-400 font-mono px-3 py-1 rounded-full border border-emerald-900/60">NPK Telemetry Active</span>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-6">
+            <!-- NPK levels -->
+            <div class="glass-panel p-6 space-y-4">
+              <h3 class="text-base font-semibold text-white">Soil Nutrient Profile (NPK)</h3>
+              <p class="text-xs text-gray-400">Active telemetry readings of nitrogen, phosphorus, and potassium levels inside selected plot.</p>
+              
+              <div class="space-y-4 pt-2">
+                <div>
+                  <div class="flex justify-between text-xs text-gray-400 mb-1 font-mono">
+                    <span>NITROGEN (N)</span>
+                    <span>45 kg/ha (Optimal)</span>
+                  </div>
+                  <div class="w-full bg-gray-900 rounded-full h-2">
+                    <div class="bg-emerald-500 h-2 rounded-full" style="width: 75%"></div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div class="flex justify-between text-xs text-gray-400 mb-1 font-mono">
+                    <span>PHOSPHORUS (P)</span>
+                    <span>38 kg/ha (Medium)</span>
+                  </div>
+                  <div class="w-full bg-gray-900 rounded-full h-2">
+                    <div class="bg-amber-500 h-2 rounded-full" style="width: 58%"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="flex justify-between text-xs text-gray-400 mb-1 font-mono">
+                    <span>POTASSIUM (K)</span>
+                    <span>52 kg/ha (Optimal)</span>
+                  </div>
+                  <div class="w-full bg-gray-900 rounded-full h-2">
+                    <div class="bg-emerald-500 h-2 rounded-full" style="width: 82%"></div>
+                  </div>
+                </div>
+
+                <div class="pt-4 flex justify-between items-center text-xs border-t border-emerald-950/40 font-mono">
+                  <span>SOIL PH LEVEL</span>
+                  <span class="text-emerald-400 font-bold">6.4 pH (Slightly Acidic)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Crop rotation simulator -->
+            <div class="md:col-span-2 glass-panel p-6 space-y-4 flex flex-col justify-between">
+              <div>
+                <h3 class="text-base font-semibold text-white mb-2">AI Rotation suitability modeling</h3>
+                <p class="text-xs text-gray-400 mb-4">Input rotational pairs to run forecasting matrices for yield and organic carbon build-up.</p>
+                
+                <div class="grid grid-cols-2 gap-4 bg-[#08120c] border border-emerald-950 p-4 rounded-xl mb-4">
+                  <div>
+                    <span class="text-[10px] text-gray-500 block uppercase font-mono mb-1">Current Crop</span>
+                    <select class="w-full bg-[#0c1c13] border border-emerald-900/60 rounded text-xs px-2 py-1 text-white">
+                      <option value="Tomato">Tomato</option>
+                      <option value="Cotton">Cotton</option>
+                      <option value="Corn">Corn</option>
+                    </select>
+                  </div>
+                  <div>
+                    <span class="text-[10px] text-gray-500 block uppercase font-mono mb-1">Next Crop Suggestion</span>
+                    <select id="rotational-pair-select" class="w-full bg-[#0c1c13] border border-emerald-900/60 rounded text-xs px-2 py-1 text-white">
+                      <option value="soy">Soybeans (Fixes N)</option>
+                      <option value="groundnut">Groundnuts (Legumes)</option>
+                      <option value="clover">Clover (Cover Crop)</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <button onclick="document.getElementById('rotation-results-box').classList.remove('hidden'); logAgentChat('Crop Agent', 'User', 'Simulated crop rotation projection compiled.'); speakText('Rotation suitability report compiled.');" class="px-6 py-2.5 bg-emerald-500 text-black text-xs font-bold rounded-lg hover:bg-emerald-400 transition cursor-pointer w-full text-center">
+                  RUN ROTATION MODELING
+                </button>
+              </div>
+
+              <!-- Output results simulator -->
+              <div id="rotation-results-box" class="hidden grid grid-cols-2 gap-4 pt-4 border-t border-emerald-950/40">
+                <div class="p-3 bg-emerald-950/20 border border-emerald-900/30 rounded">
+                  <span class="text-[9px] text-gray-500 uppercase block font-mono">Yield Increase</span>
+                  <span class="text-base font-bold text-emerald-400 font-mono">+18.5% Predicted</span>
+                </div>
+                <div class="p-3 bg-emerald-950/20 border border-emerald-900/30 rounded">
+                  <span class="text-[9px] text-gray-500 uppercase block font-mono">Soil carbon gain</span>
+                  <span class="text-base font-bold text-emerald-400 font-mono">+1.45% in 12 months</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Soil Micronutrients status -->
+          <div class="glass-panel p-6 space-y-4">
+            <h3 class="text-base font-semibold text-white">Micro-Nutrient Diagnostic Sweep</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 font-mono text-xs">
+              <div class="p-3 glass-card">
+                <span class="text-gray-500 block text-[10px]">ZINC (Zn)</span>
+                <span class="text-emerald-400 font-bold">1.2 ppm (Optimal)</span>
+              </div>
+              <div class="p-3 glass-card">
+                <span class="text-gray-500 block text-[10px]">IRON (Fe)</span>
+                <span class="text-orange-400 font-bold">4.8 ppm (Deficiency risk)</span>
+              </div>
+              <div class="p-3 glass-card">
+                <span class="text-gray-500 block text-[10px]">BORON (B)</span>
+                <span class="text-emerald-400 font-bold">0.5 ppm (Optimal)</span>
+              </div>
+              <div class="p-3 glass-card">
+                <span class="text-gray-500 block text-[10px]">COPPER (Cu)</span>
+                <span class="text-emerald-400 font-bold">0.8 ppm (Optimal)</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 9. MARKET PREDICTION DASHBOARD -->
+        <section id="screen-market" class="app-screen hidden space-y-6">
+          <div class="flex justify-between items-center">
+            <div>
+              <h2 class="text-2xl font-bold text-white">Market Intelligence & Pricing</h2>
+              <p class="text-sm text-gray-400">Nearby Mandi commodity trends and AI optimal sell windows</p>
+            </div>
+            <span class="text-xs bg-amber-950 text-amber-400 font-mono px-3 py-1 rounded-full border border-amber-900/60">Live Prices</span>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-6">
+            <!-- Commodity Ticker -->
+            <div class="glass-panel p-6 space-y-4 flex flex-col justify-between">
+              <div>
+                <h3 class="text-base font-semibold text-white mb-2">Regional Mandi Pricing</h3>
+                <div class="space-y-3 font-mono text-xs">
+                  <div class="flex justify-between items-center py-2 border-b border-emerald-950/40">
+                    <span class="text-white font-bold">Tomato</span>
+                    <span class="text-emerald-400">₹2,800/Qtl (+5.2%)</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-b border-emerald-950/40">
+                    <span class="text-white font-bold">Cotton</span>
+                    <span class="text-red-400">₹6,400/Qtl (-1.5%)</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-b border-emerald-950/40">
+                    <span class="text-white font-bold">Corn</span>
+                    <span class="text-gray-400">₹2,100/Qtl (Stable)</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-b border-emerald-950/40">
+                    <span class="text-white font-bold">Wheat</span>
+                    <span class="text-emerald-400">₹2,450/Qtl (+0.8%)</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recommendation box -->
+              <div class="p-3.5 bg-amber-950/20 border border-amber-900/40 rounded-lg text-xs space-y-1 mt-4">
+                <span class="font-bold text-amber-400 uppercase font-mono block">AI MARKET DIRECTIVE</span>
+                <p class="text-gray-300">Tomato prices expected to fall in 5 days due to supply spikes from neighbouring districts. Sell immediately.</p>
+              </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="md:col-span-2 glass-panel p-6 flex flex-col justify-between">
+              <div>
+                <h3 class="text-base font-semibold text-white mb-2">Price Trend Forecast (8-Week Projection)</h3>
+                <p class="text-xs text-gray-400 mb-4 font-sans">Predicted spikes in dashed lines based on national agricultural demand variables.</p>
+              </div>
+              <div class="h-64 relative">
+                <canvas id="marketTrendsChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- District Ticker details -->
+          <div class="glass-panel p-6">
+            <h3 class="text-base font-semibold text-white mb-4">Nearby Mandi Price Tickers</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 font-mono text-xs text-center">
+              <div class="p-3 glass-card">
+                <span class="text-gray-500 block text-[10px]">DODDABALLAPURA</span>
+                <span class="text-emerald-400 font-bold">Tomato: ₹2,850/Qtl</span>
+              </div>
+              <div class="p-3 glass-card">
+                <span class="text-gray-500 block text-[10px]">KOLAR mandi</span>
+                <span class="text-emerald-400 font-bold">Tomato: ₹2,900/Qtl</span>
+              </div>
+              <div class="p-3 glass-card">
+                <span class="text-gray-500 block text-[10px]">YESHWANTHPUR</span>
+                <span class="text-orange-400 font-bold">Tomato: ₹2,740/Qtl</span>
+              </div>
+              <div class="p-3 glass-card">
+                <span class="text-gray-500 block text-[10px]">CHICKBALLAPUR</span>
+                <span class="text-emerald-400 font-bold">Tomato: ₹2,800/Qtl</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 10. FARM ACTIVITY TIMELINE -->
+        <section id="screen-timeline" class="app-screen hidden space-y-6">
+          <div>
+            <h2 class="text-2xl font-bold text-white">Farm Activity & Agent Audit Timeline</h2>
+            <p class="text-sm text-gray-400">Historical sequence of autonomous decisions and user overrides</p>
+          </div>
+
+          <div id="timeline-container" class="max-w-2xl">
+            <!-- Timeline elements populated by JS -->
+          </div>
+        </section>
+
+        <!-- 11. VOICE AI INTERFACE -->
+        <section id="screen-voice" class="app-screen hidden py-10 flex flex-col items-center text-center space-y-10">
+          <div class="max-w-xl space-y-3">
+            <h2 class="text-3xl font-extrabold text-white">Voice AI Manager</h2>
+            <p class="text-sm text-gray-400">Communicate with AgriMind AI naturally in your regional language. System speaks alerts and diagnostic details out loud.</p>
+          </div>
+
+          <!-- Micro interaction -->
+          <div class="relative flex flex-col items-center gap-6">
+            <!-- Ripple waves -->
+            <div id="voice-wave-container" class="hidden flex gap-2 justify-center items-center h-16 w-48">
+              <div class="voice-wave-bar"></div>
+              <div class="voice-wave-bar"></div>
+              <div class="voice-wave-bar"></div>
+              <div class="voice-wave-bar"></div>
+              <div class="voice-wave-bar"></div>
+            </div>
+            
+            <button id="voice-mic-btn" onclick="toggleVoiceInput()" class="bg-emerald-500 text-black rounded-full p-6 hover:bg-emerald-400 cursor-pointer transition glow-border-green">
+              <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+              </svg>
+            </button>
+            
+            <span id="voice-input-status-text" class="text-sm text-gray-400 font-mono">
+              Click mic icon and speak (supports Kannada, Hindi, Telugu, Tamil, and more)
+            </span>
+          </div>
+
+          <!-- Speech bubble feedback -->
+          <div class="glass-panel p-6 max-w-xl w-full text-center">
+            <span class="text-[10px] text-gray-500 uppercase tracking-widest font-mono block mb-2">Speech Synthesizer Output</span>
+            <p id="voice-speech-output" class="text-white text-base italic leading-relaxed">
+              Awaiting voice trigger input.
+            </p>
+          </div>
+        </section>
+
+        <!-- 12. SETTINGS SCREEN -->
+        <section id="screen-settings" class="app-screen hidden space-y-6">
+          <div>
+            <h2 class="text-2xl font-bold text-white">System Settings</h2>
+            <p class="text-sm text-gray-400">Configure alert sensitivities and rural network parameters</p>
+          </div>
+
+          <div class="glass-panel p-6 space-y-6 max-w-2xl">
+            <!-- Offline toggle toggle -->
+            <div class="flex items-center justify-between py-3 border-b border-emerald-950/40">
+              <div>
+                <span class="text-sm font-semibold text-white block">Offline Mode Integration</span>
+                <span class="text-xs text-gray-500">Enable high-contrast SMS UI for low bandwidth areas</span>
+              </div>
+              <input type="checkbox" id="settings-offline-toggle" onchange="toggleOfflineMode(this.checked); document.getElementById('sidebar-offline-toggle').checked = this.checked;" class="rounded border-gray-700 bg-gray-900 text-emerald-500 focus:ring-emerald-500 h-5 w-5">
+            </div>
+
+            <!-- Sensitivity slider -->
+            <div class="py-3 border-b border-emerald-950/40 space-y-2">
+              <div class="flex justify-between">
+                <div>
+                  <span class="text-sm font-semibold text-white block">Crop Sensitivity Level</span>
+                  <span class="text-xs text-gray-500">Adjust safety margins for irrigation & disease forecasting</span>
+                </div>
+                <span id="crop-sensitivity-val" class="text-xs text-emerald-400 font-mono font-bold">Medium</span>
+              </div>
+              <input type="range" min="1" max="3" value="2" class="w-full accent-emerald-500 bg-gray-900 rounded" oninput="const m=['Low','Medium','High']; state.cropSensitivity=m[this.value-1]; document.getElementById('crop-sensitivity-val').textContent=state.cropSensitivity;">
+            </div>
+
+            <!-- Custom Sandbox sliders -->
+            <div class="py-3 border-b border-emerald-950/40 space-y-4">
+              <div>
+                <span class="text-sm font-semibold text-white block">Interactive Sensor Sandbox</span>
+                <span class="text-xs text-gray-500">Fine-tune soil moisture telemetry values to test autonomous actuator responses</span>
+              </div>
+              
+              <div class="space-y-3">
+                <div>
+                  <div class="flex justify-between text-xs text-gray-400 mb-1 font-mono">
+                    <span>SOIL MOISTURE</span>
+                    <span id="sandbox-moisture-lbl">42%</span>
+                  </div>
+                  <input type="range" min="10" max="90" value="42" class="w-full accent-blue-500 bg-gray-900 rounded" oninput="updateSandboxMoisture(this.value)">
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-4 text-xs text-gray-500 font-mono">
+              Designed for digital agricultural operating nodes. Version: 1.8.4-build.3204
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Client Script logic -->
+  <script src="app.js"></script>
+</body>
+</html>
